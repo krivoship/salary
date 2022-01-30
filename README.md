@@ -10,7 +10,7 @@ python3 main.py
 
 ## Как установить
 
-Необходимо скачать или склонировать репозиторий с проектом: https://github.com/krivoship/salary
+Необходимо скачать или склонировать репозиторий с проектом: https://github.com/krivoship/salary.
 
 В файле `.env` должен лежать ключ для работы с https://api.superjob.ru/.
 Как получить ключ можно прочитать [здесь](https://api.superjob.ru/#gettin).
