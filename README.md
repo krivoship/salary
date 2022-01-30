@@ -12,7 +12,8 @@ python3 main.py
 
 Необходимо скачать или склонировать репозиторий с проектом: https://github.com/krivoship/salary
 
-Ключи лежат в файле `.env`
+В файле `.env` должен лежать ключ для работы с https://api.superjob.ru/.
+Как получить ключ можно прочитать [здесь](https://api.superjob.ru/#gettin).
 ```
 SUPERJOB_KEY='Ваш api key api.superjob.ru'
 ```
