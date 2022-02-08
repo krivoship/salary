@@ -50,84 +50,76 @@ def predict_rub_salary_sj(vacancy):
         return (vacancy['payment_from'] + vacancy['payment_to'])/2
 
 
-def get_hh_statistic(url_hh, languages):
-    vacancies = {}
-    for language in languages:
-        language_stats = {}
+def get_hh_statistic(url_hh, language):
+    language_stats = {}
 
+    params = {
+        'text': 'name:Программист {}'.format(language),
+        'area': 1,
+        'period': 30,
+    }
+    response = get_response(url_hh, params=params)
+    language_stats['vacancies_found'] = response['found']
+    pages = response['pages']
+
+    language_vacancies = []
+    for page in range(pages):
         params = {
             'text': 'name:Программист {}'.format(language),
             'area': 1,
             'period': 30,
+            'per_page': 20,
+            'page': page,
         }
         response = get_response(url_hh, params=params)
-        language_stats['vacancies_found'] = response['found']
-        pages = response['pages']
+        language_vacancies.append(response)
+
+    salaries = get_salaries(
+        language_vacancies,
+        'items',
+        predict_rub_salary_hh
+    )
+
+    language_stats['vacancies_processed'] = len(salaries)
+    language_stats['average_salary'] = int(sum(salaries)/len(salaries))
+
+    return language_stats
+
+
+def get_sj_statistic(url_sj, language, sj_key):
+    language_stats = {}
+
+    headers = {'X-Api-App-Id': sj_key}
+    params = {
+        'keyword': 'Программист {}'.format(language),
+        'town': 'Москва',
+    }
+    response = get_response(url_sj, headers=headers, params=params)
+
+    if response['total'] > 0:
+        language_stats['vacancies_found'] = response['total']
+        pages = response['total']//20 + 1
 
         language_vacancies = []
         for page in range(pages):
             params = {
-                'text': 'name:Программист {}'.format(language),
-                'area': 1,
-                'period': 30,
-                'per_page': 20,
+                'keyword': 'Программист {}'.format(language),
+                'town': 'Москва',
                 'page': page,
             }
-            response = get_response(url_hh, params=params)
+            response = get_response(url_sj, headers=headers, params=params)
             language_vacancies.append(response)
 
-        salaries = get_salaries(
-            language_vacancies,
-            'items',
-            predict_rub_salary_hh
-        )
+            salaries = get_salaries(
+                language_vacancies,
+                'objects',
+                predict_rub_salary_sj
+            )
 
         language_stats['vacancies_processed'] = len(salaries)
         language_stats['average_salary'] = int(sum(salaries)/len(salaries))
 
-        vacancies[language] = language_stats
-
-    return vacancies
-
-
-def get_sj_statistic(url_sj, languages, sj_key):
-    vacancies = {}
-    for language in languages:
-        language_stats = {}
-
-        headers = {'X-Api-App-Id': sj_key}
-        params = {
-            'keyword': 'Программист {}'.format(language),
-            'town': 'Москва',
-        }
-        response = get_response(url_sj, headers=headers, params=params)
-
-        if response['total'] > 0:
-            language_stats['vacancies_found'] = response['total']
-            pages = response['total']//20 + 1
-
-            language_vacancies = []
-            for page in range(pages):
-                params = {
-                    'keyword': 'Программист {}'.format(language),
-                    'town': 'Москва',
-                    'page': page,
-                }
-                response = get_response(url_sj, headers=headers, params=params)
-                language_vacancies.append(response)
-
-                salaries = get_salaries(
-                    language_vacancies,
-                    'objects',
-                    predict_rub_salary_sj
-                )
-
-            language_stats['vacancies_processed'] = len(salaries)
-            language_stats['average_salary'] = int(sum(salaries)/len(salaries))
-
-            vacancies[language] = language_stats
-
-    return vacancies
+    return language_stats
 
 
 def show_tables(statistic, title):
@@ -174,8 +166,10 @@ def main():
     url_hh = 'https://api.hh.ru/vacancies'
     url_sj = 'https://api.superjob.ru/2.0/vacancies'
 
-    hh_statistic = get_hh_statistic(url_hh, languages)
-    sj_statistic = get_sj_statistic(url_sj, languages, sj_key)
+    hh_statistic, sj_statistic = {}, {}
+    for language in languages:
+        hh_statistic[language] = get_hh_statistic(url_hh, language)
+        sj_statistic[language] = get_sj_statistic(url_sj, language, sj_key)
 
     show_tables(hh_statistic, 'HeadHunter Moscow')
     show_tables(sj_statistic, 'SuperJob Moscow')
