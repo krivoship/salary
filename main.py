@@ -32,22 +32,22 @@ def get_average(lower_limit, upper_limit):
 def predict_rub_salary_hh(vacancy):
     if not vacancy['salary'] or vacancy['salary']['currency'] != 'RUR':
         return None
-    else:
-        lower_limit = vacancy['salary'].get('from', None)
-        upper_limit = vacancy['salary'].get('to', None)
 
-        if vacancy['salary']['gross']:
-            return 0.87*get_average(lower_limit, upper_limit)
-        else:
-            return get_average(lower_limit, upper_limit)
+    lower_limit = vacancy['salary'].get('from', None)
+    upper_limit = vacancy['salary'].get('to', None)
+
+    if vacancy['salary']['gross']:
+        return 0.87*get_average(lower_limit, upper_limit)
+
+    return get_average(lower_limit, upper_limit)
 
 
 def predict_rub_salary_sj(vacancy):
     if (vacancy['payment_from'] == 0 and vacancy['payment_to'] == 0) or \
             vacancy['currency'] != 'rub':
         return None
-    else:
-        return get_average(vacancy['payment_from'], vacancy['payment_to'])
+
+    return get_average(vacancy['payment_from'], vacancy['payment_to'])
 
 
 def get_hh_statistic(url_hh, language):
