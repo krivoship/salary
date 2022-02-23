@@ -1,5 +1,6 @@
 import requests
 import os
+from itertools import count
 from terminaltables import AsciiTable
 from dotenv import load_dotenv
 
@@ -52,27 +53,24 @@ def predict_rub_salary_sj(vacancy):
 
 def get_hh_statistic(url_hh, language):
     language_stats = {}
+    language_vacancies = []
 
     params = {
         'text': 'name:Программист {}'.format(language),
         'area': 1,
         'period': 30,
+        'per_page': 20,
     }
-    response = get_response(url_hh, params=params)
-    language_stats['vacancies_found'] = response['found']
-    pages = response['pages']
 
-    language_vacancies = []
-    for page in range(pages):
-        params = {
-            'text': 'name:Программист {}'.format(language),
-            'area': 1,
-            'period': 30,
-            'per_page': 20,
-            'page': page,
-        }
+    counter = count()
+    for page in counter:
+        page = page
+        params['page'] = page
         response = get_response(url_hh, params=params)
         language_vacancies.append(response)
+        if page + 1 > response['pages'] or page == 99:
+            language_stats['vacancies_found'] = response['found']
+            break
 
     salaries = get_salaries(
         language_vacancies,
@@ -88,36 +86,33 @@ def get_hh_statistic(url_hh, language):
 
 def get_sj_statistic(url_sj, language, sj_key):
     language_stats = {}
+    language_vacancies = []
 
     headers = {'X-Api-App-Id': sj_key}
     params = {
         'keyword': 'Программист {}'.format(language),
         'town': 'Москва',
     }
-    response = get_response(url_sj, headers=headers, params=params)
 
-    if response['total'] > 0:
+    counter = count()
+    for page in counter:
+        page = page
+        params['page'] = page
+        response = get_response(url_sj, headers=headers, params=params)
+        language_vacancies.append(response)
+
+        salaries = get_salaries(
+            language_vacancies,
+            'objects',
+            predict_rub_salary_sj
+        )
+
         language_stats['vacancies_found'] = response['total']
-        pages = response['total']//20 + 1
-
-        language_vacancies = []
-        for page in range(pages):
-            params = {
-                'keyword': 'Программист {}'.format(language),
-                'town': 'Москва',
-                'page': page,
-            }
-            response = get_response(url_sj, headers=headers, params=params)
-            language_vacancies.append(response)
-
-            salaries = get_salaries(
-                language_vacancies,
-                'objects',
-                predict_rub_salary_sj
-            )
-
         language_stats['vacancies_processed'] = len(salaries)
         language_stats['average_salary'] = int(sum(salaries)/len(salaries))
+
+        if not response['more']:
+            break
 
     return language_stats
 
