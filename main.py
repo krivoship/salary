@@ -124,7 +124,7 @@ def get_sj_statistics(url_sj, language, sj_key):
     return language_stats
 
 
-def show_table(statistics, title):
+def create_table(statistics):
     salary_statistics = [[
         'Язык программирования',
         'Найдено вакансий',
@@ -140,8 +140,7 @@ def show_table(statistics, title):
             statistics['average_salary'],
         ])
 
-    table = AsciiTable(salary_statistics, title)
-    print(table.table)
+    return salary_statistics
 
 
 def main():
@@ -172,8 +171,8 @@ def main():
         hh_statistics[language] = get_hh_statistics(url_hh, language)
         sj_statistics[language] = get_sj_statistics(url_sj, language, sj_key)
 
-    show_table(hh_statistics, 'HeadHunter Moscow')
-    show_table(sj_statistics, 'SuperJob Moscow')
+    print(AsciiTable(create_table(hh_statistics), 'HeadHunter Moscow').table)
+    print(AsciiTable(create_table(sj_statistics), 'SuperJob Moscow').table)
 
 if __name__ == '__main__':
     main()
