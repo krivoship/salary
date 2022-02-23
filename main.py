@@ -57,7 +57,7 @@ def predict_rub_salary_sj(vacancy):
     return get_average_salary(vacancy['payment_from'], vacancy['payment_to'])
 
 
-def get_hh_statistic(url_hh, language):
+def get_hh_statistics(url_hh, language):
     params = {
         'text': 'name:Программист {}'.format(language),
         'area': 1,
@@ -91,7 +91,7 @@ def get_hh_statistic(url_hh, language):
     return language_stats
 
 
-def get_sj_statistic(url_sj, language, sj_key):
+def get_sj_statistics(url_sj, language, sj_key):
     headers = {'X-Api-App-Id': sj_key}
     params = {
         'keyword': 'Программист {}'.format(language),
@@ -124,24 +124,23 @@ def get_sj_statistic(url_sj, language, sj_key):
     return language_stats
 
 
-def show_tables(statistic, title):
-    table_data = []
-    table_data.append([
+def show_table(statistics, title):
+    salary_statistics = [[
         'Язык программирования',
         'Найдено вакансий',
         'Обработано вакансий',
         'Средняя зарплата',
-    ])
+    ]]
 
-    for key, value in statistic.items():
-        table_data.append([
-            key,
-            value['vacancies_found'],
-            value['vacancies_processed'],
-            value['average_salary'],
+    for language, statistics in statistics.items():
+        salary_statistics.append([
+            language,
+            statistics['vacancies_found'],
+            statistics['vacancies_processed'],
+            statistics['average_salary'],
         ])
 
-    table = AsciiTable(table_data, title)
+    table = AsciiTable(salary_statistics, title)
     print(table.table)
 
 
@@ -168,13 +167,13 @@ def main():
     url_hh = 'https://api.hh.ru/vacancies'
     url_sj = 'https://api.superjob.ru/2.0/vacancies'
 
-    hh_statistic, sj_statistic = {}, {}
+    hh_statistics, sj_statistics = {}, {}
     for language in languages:
-        hh_statistic[language] = get_hh_statistic(url_hh, language)
-        sj_statistic[language] = get_sj_statistic(url_sj, language, sj_key)
+        hh_statistics[language] = get_hh_statistics(url_hh, language)
+        sj_statistics[language] = get_sj_statistics(url_sj, language, sj_key)
 
-    show_tables(hh_statistic, 'HeadHunter Moscow')
-    show_tables(sj_statistic, 'SuperJob Moscow')
+    show_table(hh_statistics, 'HeadHunter Moscow')
+    show_table(sj_statistics, 'SuperJob Moscow')
 
 if __name__ == '__main__':
     main()
