@@ -21,13 +21,19 @@ def get_salaries(vacancies, key, salary_func):
     return salaries
 
 
-def get_average(lower_limit, upper_limit):
+def get_average_salary(lower_limit, upper_limit):
     if not lower_limit or lower_limit == 0:
         return 0.8*upper_limit
     elif not upper_limit or upper_limit == 0:
         return 1.2*lower_limit
     else:
         return (lower_limit + upper_limit) / 2
+
+
+def get_average_salaries(salaries):
+    if len(salaries) == 0:
+        return 0
+    return sum(salaries)//len(salaries)
 
 
 def predict_rub_salary_hh(vacancy):
@@ -38,9 +44,9 @@ def predict_rub_salary_hh(vacancy):
     upper_limit = vacancy['salary'].get('to', None)
 
     if vacancy['salary']['gross']:
-        return 0.87*get_average(lower_limit, upper_limit)
+        return 0.87*get_average_salary(lower_limit, upper_limit)
 
-    return get_average(lower_limit, upper_limit)
+    return get_average_salary(lower_limit, upper_limit)
 
 
 def predict_rub_salary_sj(vacancy):
@@ -48,7 +54,7 @@ def predict_rub_salary_sj(vacancy):
             vacancy['currency'] != 'rub':
         return None
 
-    return get_average(vacancy['payment_from'], vacancy['payment_to'])
+    return get_average_salary(vacancy['payment_from'], vacancy['payment_to'])
 
 
 def get_hh_statistic(url_hh, language):
@@ -76,7 +82,7 @@ def get_hh_statistic(url_hh, language):
         language_stats = {
             'vacancies_found': response['found'],
             'vacancies_processed': len(salaries),
-            'average_salary': int(sum(salaries)/len(salaries))
+            'average_salary': get_average_salaries(salaries)
         }
 
         if page + 1 > response['pages'] or page == 99:
@@ -109,7 +115,7 @@ def get_sj_statistic(url_sj, language, sj_key):
         language_stats = {
             'vacancies_found': response['total'],
             'vacancies_processed': len(salaries),
-            'average_salary': int(sum(salaries)/len(salaries))
+            'average_salary': get_average_salaries(salaries)
         }
 
         if not response['more']:
