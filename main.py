@@ -5,12 +5,6 @@ from terminaltables import AsciiTable
 from dotenv import load_dotenv
 
 
-def get_response(url, headers=None, params=None):
-    response = requests.get(url, headers=headers, params=params)
-    response.raise_for_status()
-    return response.json()
-
-
 def get_salaries(vacancies, key, salary_func):
     salaries = []
     for vacancy_batch in vacancies:
@@ -70,7 +64,9 @@ def get_hh_statistics(url_hh, language):
     for page in counter:
         page = page
         params['page'] = page
-        response = get_response(url_hh, params=params)
+        response = requests.get(url_hh, params=params)
+        response.raise_for_status()
+        response = response.json()
         language_vacancies.append(response)
 
         salaries = get_salaries(
@@ -103,7 +99,9 @@ def get_sj_statistics(url_sj, language, sj_key):
     for page in counter:
         page = page
         params['page'] = page
-        response = get_response(url_sj, headers=headers, params=params)
+        response = requests.get(url_sj, headers=headers, params=params)
+        response.raise_for_status()
+        response = response.json()
         language_vacancies.append(response)
 
         salaries = get_salaries(
