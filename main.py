@@ -22,16 +22,16 @@ def get_salaries(vacancies, key, salary_func):
 
 
 def get_average_salary(lower_limit, upper_limit):
-    if not lower_limit or lower_limit == 0:
+    if not lower_limit:
         return 0.8*upper_limit
-    elif not upper_limit or upper_limit == 0:
+    elif not upper_limit:
         return 1.2*lower_limit
     else:
         return (lower_limit + upper_limit) / 2
 
 
 def get_average_salaries(salaries):
-    if len(salaries) == 0:
+    if not salaries:
         return 0
     return sum(salaries)//len(salaries)
 
@@ -50,7 +50,7 @@ def predict_rub_salary_hh(vacancy):
 
 
 def predict_rub_salary_sj(vacancy):
-    if (vacancy['payment_from'] == 0 and vacancy['payment_to'] == 0) or \
+    if not (vacancy['payment_from'] or vacancy['payment_to']) or \
             vacancy['currency'] != 'rub':
         return None
 
