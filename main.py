@@ -15,7 +15,7 @@ def get_salaries(vacancies, key, salary_func):
     return salaries
 
 
-def get_average_salary(lower_limit, upper_limit):
+def get_avg_salary(lower_limit, upper_limit):
     if not lower_limit:
         return 0.8*upper_limit
     elif not upper_limit:
@@ -24,7 +24,7 @@ def get_average_salary(lower_limit, upper_limit):
         return (lower_limit + upper_limit) / 2
 
 
-def get_average_salaries(salaries):
+def get_avg_salaries(salaries):
     if not salaries:
         return 0
     return sum(salaries)//len(salaries)
@@ -34,21 +34,19 @@ def predict_rub_salary_hh(vacancy):
     if not vacancy['salary'] or vacancy['salary']['currency'] != 'RUR':
         return None
 
-    lower_limit = vacancy['salary'].get('from', None)
-    upper_limit = vacancy['salary'].get('to', None)
+    lower_limit = vacancy['salary'].get('from')
+    upper_limit = vacancy['salary'].get('to')
 
     if vacancy['salary']['gross']:
-        return 0.87*get_average_salary(lower_limit, upper_limit)
+        return 0.87*get_avg_salary(lower_limit, upper_limit)
 
-    return get_average_salary(lower_limit, upper_limit)
+    return get_avg_salary(lower_limit, upper_limit)
 
 
 def predict_rub_salary_sj(vacancy):
-    if not (vacancy['payment_from'] or vacancy['payment_to']) or \
-            vacancy['currency'] != 'rub':
-        return None
-
-    return get_average_salary(vacancy['payment_from'], vacancy['payment_to'])
+    if (vacancy['payment_from'] or vacancy['payment_to']) and \
+            vacancy['currency'] == 'rub':
+        return get_avg_salary(vacancy['payment_from'], vacancy['payment_to'])
 
 
 def get_hh_statistics(url_hh, language):
@@ -69,20 +67,20 @@ def get_hh_statistics(url_hh, language):
         response = response.json()
         language_vacancies.append(response)
 
-        salaries = get_salaries(
-            language_vacancies,
-            'items',
-            predict_rub_salary_hh
-        )
-
-        language_stats = {
-            'vacancies_found': response['found'],
-            'vacancies_processed': len(salaries),
-            'average_salary': get_average_salaries(salaries)
-        }
-
         if page + 1 > response['pages'] or page == 99:
             break
+
+    salaries = get_salaries(
+        language_vacancies,
+        'items',
+        predict_rub_salary_hh
+    )
+
+    language_stats = {
+        'vacancies_found': response['found'],
+        'vacancies_processed': len(salaries),
+        'average_salary': get_avg_salaries(salaries)
+    }
 
     return language_stats
 
@@ -104,20 +102,20 @@ def get_sj_statistics(url_sj, language, sj_key):
         response = response.json()
         language_vacancies.append(response)
 
-        salaries = get_salaries(
-            language_vacancies,
-            'objects',
-            predict_rub_salary_sj
-        )
-
-        language_stats = {
-            'vacancies_found': response['total'],
-            'vacancies_processed': len(salaries),
-            'average_salary': get_average_salaries(salaries)
-        }
-
         if not response['more']:
             break
+
+    salaries = get_salaries(
+        language_vacancies,
+        'objects',
+        predict_rub_salary_sj
+    )
+
+    language_stats = {
+        'vacancies_found': response['total'],
+        'vacancies_processed': len(salaries),
+        'average_salary': get_avg_salaries(salaries)
+    }
 
     return language_stats
 
